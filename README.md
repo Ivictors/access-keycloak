@@ -24,3 +24,16 @@ Esses usuários e clientes existem apenas no Keycloak. A web PHP continua usando
 `docker compose down` para os contêineres e preserva o volume do banco. `docker compose down -v` remove o volume e apaga realms, clientes e usuários; execute esse comando somente se quiser reiniciar o laboratório do zero.
 
 Este Compose é para estudo local. `start-dev` usa padrões inseguros e não é uma configuração de produção. Consulte a [documentação oficial de contêineres do Keycloak](https://www.keycloak.org/server/containers) para os requisitos de implantação.
+
+## Padrão de documentação e configuração
+
+Este repositório existe para fornecer um ambiente local de identidade e OIDC para o Access Gateway. O README acima apresenta o escopo, a arquitetura e as tecnologias específicas do projeto; esta seção padroniza o ponto de entrada para quem deseja reproduzi-lo localmente.
+
+### Clonar e configurar
+
+~~~powershell
+git clone https://github.com/Ivictors/access-keycloak.git
+cd access-keycloak
+~~~
+
+Consulte os pré-requisitos e comandos de execução descritos neste README antes de iniciar. Use variáveis de ambiente, arquivos locais ignorados pelo Git e serviços de desenvolvimento para credenciais; não substitua placeholders por segredos no README e não versione chaves, tokens ou senhas.
