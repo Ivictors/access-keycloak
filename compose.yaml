@@ -35,11 +35,12 @@ services:
         condition: service_healthy
     networks:
       - identity_data
+      - identity_app
 
 volumes:
   keycloak_db_data:
 
 networks:
+  identity_app:
   identity_data:
     internal: true
-
