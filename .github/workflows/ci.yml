@@ -1,0 +1,39 @@
+name: Identity lab
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  realm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Validate realm and Compose
+        run: |
+          python3 -m json.tool realm-access.json > /dev/null
+          printf 'KEYCLOAK_DB_PASSWORD=%s\nKEYCLOAK_ADMIN_PASSWORD=%s\nACCESS_WEB_OIDC_CLIENT_SECRET=%s\nACCESS_LAB_USER_PASSWORD=%s\n' \
+            "$(openssl rand -hex 32)" "$(openssl rand -hex 32)" "$(openssl rand -hex 32)" "$(openssl rand -hex 32)" > .env
+          docker compose config --quiet
+      - name: Start identity lab
+        run: docker compose up -d
+      - name: Check discovery
+        run: |
+          for attempt in $(seq 1 90); do
+            if curl --fail --silent http://localhost:8180/realms/access-lab/.well-known/openid-configuration | \
+                python3 -c 'import json,sys; assert json.load(sys.stdin)["issuer"] == "http://localhost:8180/realms/access-lab"'; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs --tail 50 keycloak
+          exit 1
+      - name: Stop identity lab
+        if: always()
+        run: docker compose down -v

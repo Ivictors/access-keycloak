@@ -1,10 +1,20 @@
 # Access Keycloak
 
-Laboratório local de identidade do Access Stack. Este é um repositório independente dos projetos `acess-gateway`, `access-web`, `device-simulator` e `access-infra`. O Keycloak usa seu próprio PostgreSQL e não participa da autenticação das aplicações atuais.
+## Integração local com o Access Stack
+
+O realm `access-lab` é importado na primeira inicialização. Ele contém o cliente confidencial `access-web`, a função `access-admin` e um usuário de demonstração com essa função. Defina `ACCESS_WEB_OIDC_CLIENT_SECRET` e `ACCESS_LAB_USER_PASSWORD` no `.env` antes de iniciar. O usuário de demonstração é `access-admin`; sua senha é o valor local de `ACCESS_LAB_USER_PASSWORD`.
+
+O cliente `access-web` aceita somente o callback `http://localhost:8000/?oidc_callback=1`, exige PKCE S256 e permite o retorno a `http://localhost:8000/` após o logout do SSO. Se o realm já existia antes dessas opções, atualize o cliente pelo console; a importação não sobrescreve realms existentes.
+
+Para integrar web e gateway, inicie primeiro este Compose e depois use o arquivo `compose.oidc.yaml` do `access-infra`. O Keycloak permanece dono do próprio banco. A rede `access-keycloak_identity_app` permite que web e gateway alcancem o Keycloak por `http://keycloak:8080`, enquanto o navegador usa `http://localhost:8180`. O emissor anunciado nos tokens é o endereço do navegador; o gateway busca as chaves pelo endereço interno e também confere emissor, público destinatário e função administrativa.
+
+O importador do Keycloak ignora um realm que já existe. Se `access-lab` tiver sido criado manualmente antes desta configuração, faça os ajustes no console ou reinicie somente o volume deste laboratório quando não houver dados a preservar.
+
+Laboratório local de identidade do Access Stack. Este é um repositório independente dos projetos `acess-gateway`, `access-web`, `device-simulator` e `access-infra`. O Keycloak usa seu próprio PostgreSQL e pode autenticar a web e o acesso administrativo ao gateway no modo OIDC opcional.
 
 ## Iniciar
 
-1. Copie `.env.example` para `.env` e substitua as duas senhas por valores diferentes e exclusivos. O arquivo `.env` não deve ser versionado.
+1. Copie `.env.example` para `.env` e preencha as quatro credenciais com valores diferentes e exclusivos. O arquivo `.env` não deve ser versionado.
 2. Execute `docker compose up -d` nesta pasta.
 3. Abra `http://localhost:8180/admin/` e entre com o usuário `admin` e a senha definida em `KEYCLOAK_ADMIN_PASSWORD`.
 
@@ -12,12 +22,10 @@ O Compose usa a imagem `quay.io/keycloak/keycloak:26.8.2` em modo de desenvolvim
 
 ## Exercício de OIDC
 
-1. No console, crie um realm chamado `access-lab`.
-2. Em **Clients**, crie um cliente OpenID Connect chamado `access-lab-client`, com autenticação de cliente desativada. Para um exercício com navegador, configure uma URI de redirecionamento local específica para a aplicação de teste antes de iniciar o fluxo de login.
-3. Em **Users**, crie um usuário de demonstração e defina uma senha não temporária. Use valores fictícios.
-4. Confira o documento de descoberta em `http://localhost:8180/realms/access-lab/.well-known/openid-configuration`. O campo `issuer` deve ser `http://localhost:8180/realms/access-lab`.
+1. No console, confira o realm `access-lab`, o cliente confidencial `access-web` e o usuário de demonstração `access-admin` importados na primeira inicialização.
+2. Confira o documento de descoberta em `http://localhost:8180/realms/access-lab/.well-known/openid-configuration`. O campo `issuer` deve ser `http://localhost:8180/realms/access-lab`.
 
-Esses usuários e clientes existem apenas no Keycloak. A web PHP continua usando sua senha e sessão; o gateway continua autenticando o token administrativo e as chaves dos dispositivos. Nenhuma aplicação consome os tokens OIDC deste laboratório.
+No modo sem integração, a web PHP continua usando sua senha e sessão, e o gateway continua autenticando o token administrativo e as chaves dos dispositivos. No modo OIDC, web e gateway usam o realm `access-lab`, enquanto as chaves dos dispositivos continuam no gateway.
 
 ## Parar e preservar dados
 

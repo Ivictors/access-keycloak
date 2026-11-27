@@ -19,7 +19,7 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.8.2
-    command: start-dev
+    command: start-dev --import-realm
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://db:5432/keycloak
@@ -28,6 +28,10 @@ services:
       KC_HOSTNAME: http://localhost:8180
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Set KEYCLOAK_ADMIN_PASSWORD in .env}
+      ACCESS_WEB_OIDC_CLIENT_SECRET: ${ACCESS_WEB_OIDC_CLIENT_SECRET:?Set ACCESS_WEB_OIDC_CLIENT_SECRET in .env}
+      ACCESS_LAB_USER_PASSWORD: ${ACCESS_LAB_USER_PASSWORD:?Set ACCESS_LAB_USER_PASSWORD in .env}
+    volumes:
+      - ./realm-access.json:/opt/keycloak/data/import/realm-access.json:ro
     ports:
       - "127.0.0.1:8180:8080"
     depends_on:
@@ -42,5 +46,6 @@ volumes:
 
 networks:
   identity_app:
+    name: access-keycloak_identity_app
   identity_data:
     internal: true
