@@ -1,0 +1,51 @@
+{
+  "realm": "access-lab",
+  "enabled": true,
+  "roles": {
+    "realm": [
+      { "name": "access-admin", "description": "Manage devices and inspect access events" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "access-web",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "${ACCESS_WEB_OIDC_CLIENT_SECRET}",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": ["http://localhost:8000/?oidc_callback=1"],
+      "attributes": { "post.logout.redirect.uris": "http://localhost:8000/", "pkce.code.challenge.method": "S256" },
+      "webOrigins": ["http://localhost:8000"],
+      "protocolMappers": [
+        {
+          "name": "access-gateway-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "access-gateway",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "access-admin",
+      "enabled": true,
+      "firstName": "Access",
+      "lastName": "Admin",
+      "email": "access-admin@example.test",
+      "emailVerified": true,
+      "realmRoles": ["access-admin"],
+      "credentials": [
+        { "type": "password", "value": "${ACCESS_LAB_USER_PASSWORD}", "temporary": false }
+      ]
+    }
+  ]
+}
